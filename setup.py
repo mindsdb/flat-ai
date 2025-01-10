@@ -1,14 +1,18 @@
 from setuptools import setup, find_packages
 
+about = {}
+with open("minds/__about__.py") as fp:
+    exec(fp.read(), about)
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="flat-ai",
-    version="0.1.0",
-    author="Yours truly Jorge Torres and an LLM",
-    author_email="your.email@example.com",
-    description="F.L.A.T. (Frameworkless LLM Agent Thing) for building AI Agents",
+    name=about['__title__'],
+    version=about['__version__'],
+    author=about['__author__'],
+    author_email=about['__email__'],
+    description=about['__description__'],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/flat-ai",
