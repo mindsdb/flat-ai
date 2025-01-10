@@ -24,7 +24,7 @@ Best and fastest way, is to get your teeth to it:
 
 It's basically LLM and Clean Python building blocks: We're talking IF/ELSE statements that actually get sarcasm, Loops made out of thin air, Switch cases with attitude, and Functions that don't need a GPS to find their purpose. It's regular Python syntax meets AI wizardry - what could possibly go wrong? 🧙‍♂️
 
-## Step 2: LLM Logic Blocks
+## LLM Logic Blocks
 
 Think Python code, but with an LLM brain transplant! 
 
