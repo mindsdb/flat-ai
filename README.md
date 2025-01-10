@@ -23,14 +23,13 @@ But, scare yourself not when you read the words OpenAI. Because, you will still 
 import openai
 from flat_ai import FlatAI
 
-# Create client, we will be using Ollama, through the now Universal LLM API of OpenAI
-
+# Create client
 client = openai.OpenAI(
-    base_url = 'http://localhost:11434/v1',
-    api_key='ollama', # required, but unused
+    # base_url = 'http://localhost:11434/v1', -- if you want ollama
+    api_key=<your api key>, # required, but unused
 )
 
-llm = FlatAI(client=client, model='llama3')
+llm = FlatAI(client=client, model='gpt-4o-mini-2024-07-18')
 ```
 
 With that, and two more simple simple steps, you are ready to start building your own AI agents.
