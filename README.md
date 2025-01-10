@@ -260,7 +260,7 @@ llm.set_context(email=email)
 
 ```
 
-It will get better, I promise as now we can/could start asking the LLM to do something with the email... and for that we need some logic blocks: We're talking IF/ELSE statements that actually get sarcasm, Loops made out of thin air, Switch cases with attitude, and Functions that don't need a GPS to find their purpose. It's regular Python syntax meets AI wizardry - what could possibly go wrong? 🧙‍♂️
+
 
 # Tada!
 And there you have it, ladies and gents! You're now equipped with the power to boss around LLMs like a project manager remotely working from Ibiza. Just remember - with great power comes great responsibility... and the occasional hallucination where your AI assistant thinks it's a pirate-ninja-astronaut.
