@@ -251,7 +251,7 @@ class Email(BaseModel):
 email = Email(
     to_email='john@doe.com',
     from_email='jane@doe.com',
-    body='Hello, would love to shedule a time to talk.',
+    body='Hello, would love to schedule a time to talk.',
     subject='Meeting'
 )
 
