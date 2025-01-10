@@ -21,7 +21,7 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers Who Are Too Cool for Frameworks",
         "Intended Audience :: People Who Think AI Should Have More Personality",
-        "Intended Audience :: Anyone Who's Ever Said 'I Could Build That Better'",
+        "Intended Audience :: Anyone Who\'s Ever Said \'I Could Build That Better\'",
         "Intended Audience :: Coffee-Powered Code Ninjas",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
