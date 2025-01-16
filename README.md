@@ -20,12 +20,14 @@ Best and fastest way, is to get your teeth to it:
 
 It's basically LLM and Clean Python building blocks: We're talking IF/ELSE statements that actually get sarcasm, Loops made out of thin air, Switch cases with attitude, and Functions that don't need a GPS to find their purpose. It's regular Python syntax meets AI wizardry - what could possibly go wrong? 🧙‍♂️
 
-## LLM Logic Blocks
+## Workflows:
 
 Think Python code, but with an LLM brain transplant! 
 
 
-### IF/ELSE Statements
+### GATES: 
+
+<img width="534" alt="image" src="https://github.com/user-attachments/assets/921734fc-49b6-4efd-b702-d00d3f9b60e4" />
 
 Most applications will need to perform some logic that allows you to control the workflow of your Agente with good old if/else statements. For example, given a question in plain English, you want to do something different, like checking if the email sounds urgent or not:
 
@@ -38,11 +40,10 @@ if llm.true_or_false('is this email urgent?'):
 else:
     -- do something else
 
-llm.clear_context()
 ```
 
-
-### Switch case
+### Workflow: Routing
+<img width="576" alt="image" src="https://github.com/user-attachments/assets/deeee920-f0e0-4702-8981-993cef9ef958" />
 
 Similar to if/else statements, but for when your LLM needs to be more dramatic with its life choices. 
 
@@ -69,6 +70,12 @@ match llm.get_key(options):
 
 
 ```
+
+## Agents
+
+<img width="560" alt="image" src="https://github.com/user-attachments/assets/ef58c294-711d-41ba-990e-54d6fe8e98e6" />
+
+To write Agents you will want to create logic **loops**, and allow the LLM to call **functions**. As well as the hability to turn unstructured data into structured data **OBjects** that can be used in your Agent logic.
 
 ### Objects
 
