@@ -2,16 +2,13 @@
 
 # F.L.A.T. (Frameworkless LLM Agent... Thing)
 
-Welcome to the "Build AI Apps Without Frameworks" masterclass! - 
-Inspired on Anthropic's scholarly tome about [**building effective agents**.](https://www.anthropic.com/research/building-effective-agents) Too busy to read their post? Here's a spanky video summary by the legend Matt Berman ([here](https://www.youtube.com/watch?v=0v7TQIh_kes)).
-
-Anywho, want to try this lib out?
+Welcome to the "Build AI Apps Without Frameworks" masterclass!
 
 ```shell
 pip install flat-ai
 ```
 
-Or clone the repo, or DIY, this is an AI library so, soo tiny, it makes minimalists look like hoarders, and it should be be able to code one yourself... 
+Or clone the repo, and learn how to DIY, this is an AI library so, soo tiny, it makes minimalists look like hoarders, and it should be be able to adapt to your heart needs... 
 
 ## Let's get started
 
