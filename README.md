@@ -73,7 +73,10 @@ match llm.get_key(options):
 
 <img width="560" alt="image" src="https://github.com/user-attachments/assets/ef58c294-711d-41ba-990e-54d6fe8e98e6" />
 
-To write Agents you will want to create logic **loops**, and allow the LLM to call **functions**. As well as the hability to turn unstructured data into structured data **OBjects** that can be used in your Agent logic.
+Straight from the AI prophet's mouth: *"Agents can handle sophisticated tasks, but their implementation is often straightforward. They are typically just LLMs using tools based on environmental feedback in a loop."*  As well as the hability to turn unstructured data into structured data **OBjects** that can be used in your Agent logic.
+
+
+Translation: It's basically a Python script doing the hokey pokey with an API - you put the prompt in, you get the output out, you do the while loop and shake it all about. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Thank goodness Guido van Rossum had that wild weekend in '89 and blessed us with *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons.
 
 ### Objects
 
