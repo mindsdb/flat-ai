@@ -12,8 +12,6 @@ pip install flat-ai
 
 Or clone the repo, or DIY, this is an AI library so, soo tiny, it makes minimalists look like hoarders, and it should be be able to code one yourself... 
 
-> **Oh wait I did not even code it myself...**. I simply asked an LLM to write it for me based on this very same README.md file. And it did. And it works. So then I asked it to solve all problems to life, the universe and everything, and here I am, not blinking, looking at the number 42... *We might have just entered the age where some dairy products last longer than agentic frameworks.*
-
 ## Let's get started
 
 Best and fastest way, is to get your teeth to it:
