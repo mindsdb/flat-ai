@@ -1,3 +1,4 @@
+![image](https://github.com/user-attachments/assets/5b0bf5bc-70a2-47a7-90ce-20a6e74cd569)
 
 # F.L.A.T. (Frameworkless LLM Agent... Thing)
 
