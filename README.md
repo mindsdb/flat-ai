@@ -264,6 +264,6 @@ llm.set_context(email=email)
 
 
 # Tada!
-And there you have it, ladies and gents! You're now equipped with the power to boss around LLMs like a project manager remotely working from Ibiza. Just remember - with great power comes great responsibility... and the occasional hallucination where your AI assistant thinks it's a pirate-ninja-astronaut.
+And there you have it, ladies and gents! You're now equipped with the power to boss around LLMs like a project manager remotely working from Ibiza. Just remember - with great power comes great responsibility... 
 
 Now off you go, forth and build something that makes ChatGPT look like a calculator from 1974! Just remember - if your AI starts humming "Daisy Bell" while slowly disconnecting your internet... well, you're on your own there, buddy! 😅
