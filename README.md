@@ -12,7 +12,7 @@ pip install flat-ai
 
 Best and fastest way, is to get your teeth to it:
 
-[Tutorial Jupyter Notebook](/tutorial.ipynb)
+[Tutorial Jupyter Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
 
 # Features
 
@@ -184,8 +184,7 @@ for chunk in llm.get_stream('what is the subject of the email?', email=email):
 
 ## OpenAI API based
 
-As you are just about to see, this tiny library is designed to talk to LLMs that are served through an OpenAI API compatible endpoint (as they all should). 
-But, scare yourself not when you read the words OpenAI. Because, you will still be able to play with all kinds of models and providers - OpenAI or not - using the same API ([Ollama](https://ollama.com/blog/openai-compatibility) as seen below, [Groq](https://console.groq.com/docs/openai), etc). Because, Most of them have OpenAI API compatible endpoints.
+This library uses the OpenAI API format, which means it works with OpenAI and any other model and providers like Ollama, TogetherAI, Groq, etc that support the same API format. So you can use any model from any provider that has OpenAI-compatible endpoints.
 
 ```python
 import openai
