@@ -27,17 +27,13 @@ Think Python code, but with an LLM brain transplant!
 
 <img width="534" alt="image" src="https://github.com/user-attachments/assets/921734fc-49b6-4efd-b702-d00d3f9b60e4" />
 
-Most applications will need to perform some logic that allows you to control the workflow of your Agente with good old if/else statements. For example, given a question in plain English, you want to do something different, like checking if the email sounds urgent or not:
+Most applications will need to perform some logic that allows you to control the workflow of your Agent with good old if/else statements. For example, given a question in plain English, you want to do something different, like checking if the email sounds urgent or not:
 
 ```python
-
-llm.set_context(email=email)
-
-if llm.true_or_false('is this email urgent?'):
+if llm.is_true('is this email urgent?', email=email):
     -- do something
 else:
     -- do something else
-
 ```
 
 ### Workflow: Routing
@@ -47,25 +43,20 @@ Similar to if/else statements, but for when your LLM needs to be more dramatic w
 
 *For example*, let's say we want to classify a message into different categories:
 
-``` python
-
+```python
 options = {
  'meeting': 'this is a meeting request',
  'spam': 'people trying to sell you stuff you dont want',
  'other': 'this is sounds like something else'
- }
+}
 
-llm.set_context(email=email)
-
-match llm.get_key(options):
+match llm.classify(options, email=email):
     case 'meeting':
-        # you can add more context whenever you want
-        llm.add_context(meeting=True)
+        -- do something
     case 'spam':
-        llm.add_context(spam=True)
+        -- do something
     case 'other':
         -- do something
-
 
 ```
 
@@ -90,10 +81,7 @@ class EmailSummary(BaseModel):
     label: str
 
 
-llm.set_context(email=email)
-
-ret = llm.generate_object(EmailSummary)
-
+ret = llm.generate_object(EmailSummary, email=email)
 ```
 
 
@@ -114,11 +102,13 @@ class ActionItem(BaseModel):
 
 object_schema = List[ActionItem]
 
-llm.set_context(email=email)
-
+# lets pass the context to the LLM once, so we don't have to pass it every time
+llm.set_context(email=email, today = date.today())
 if llm.true_or_false('are there action items in this email?'):
     for action_item in llm.generate_object(object_schema):
         -- do something
+
+llm.clear_context()
 ```
 
 ### Function Calling
@@ -126,9 +116,8 @@ if llm.true_or_false('are there action items in this email?'):
 And of course, we want to be able to call functions. But you want the llm to figure out the arguments for you.
 
 *For example*, let's say we want to call a function that sends a calendar invite to a meeting, we want the llm to figure out the arguments for the function given some information:
+
 ```python
-
-
 def send_calendar_invite(
     subject = str, 
     time = str, 
@@ -136,11 +125,9 @@ def send_calendar_invite(
     attendees = List[str]):
     -- send a calendar invite to the meeting
 
-llm.set_context(email=email)
 
-if llm.true_or_false('is this an email requesting for a meeting?'):
-    ret = llm.call_function(send_calendar_invite)
-
+if llm.true_or_false('is this an email requesting for a meeting?', email=email):
+    ret = llm.call_function(send_calendar_invite, email=email, today = date.today())
 ``` 
 
 ### Function picking
@@ -150,7 +137,6 @@ Sometimes you want to pick a function from a list of functions. You can do that 
 *For example*, let's say we want to pick a function from a list of functions:
 
 ```python
-
 def send_calendar_invites(
     subject = str, 
     time = str, 
@@ -174,13 +160,7 @@ else
     send a calendar invites to the meeting
 """
 
-llm.set_context(email=email)
-
-# pick the function and the arguments
-function, args = llm.pick_a_function(instructions, [send_calendar_invite, send_email])
-
-# call the function with the arguments
-function(**args)
+function, args = llm.pick_a_function(instructions, [send_calendar_invite, send_email], email=email, today = date.today())
 ```
 
 
@@ -189,11 +169,7 @@ function(**args)
 Sometimes you just want a simple string response from the LLM. You can use the `get_string` method for this, I know! boring AF but it may come in handy:
 
 ```python
-
-llm.set_context(email=email)
-
-ret = llm.get_string('what is the subject of the email?')
-
+ret = llm.get_string('what is the subject of the email?', email=email)
 ```
 
 ### Streaming Response
@@ -201,12 +177,8 @@ ret = llm.get_string('what is the subject of the email?')
 Sometimes you want to stream the response from the LLM. You can use the `get_stream` method for this:
 
 ```python
-
-llm.set_context(email=email)
-
-for chunk in llm.get_stream('what is the subject of the email?'):
+for chunk in llm.get_stream('what is the subject of the email?', email=email):
     print(chunk)
-
 ```
 
 

@@ -29,7 +29,9 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union, Iterable
 import openai
 from pydantic import BaseModel, Field
 import time
+from flat_ai.trace_llm import MyOpenAI
 
+openai.OpenAI = MyOpenAI
 class Boolean(BaseModel):
     result: bool = Field(description="The true/false result based on the question and context")
 
@@ -70,33 +72,39 @@ class FlatAI:
         for key in keys:
             self._context.pop(key, None)
 
-    def _build_messages(self, *message_parts) -> List[Dict[str, str]]:
+    def _build_messages(self, *message_parts, **kwargs) -> List[Dict[str, str]]:
         """Build message list with context as system message if present"""
         messages = []
         
         if self._context:
-            context_str = "Context:\n"
+            context_dict = {}
             for key, value in self._context.items():
                 if isinstance(value, BaseModel):
-                    context_str += f"{key}: {value.model_dump_json()}\n"
+                    context_dict[key] = json.loads(value.model_dump_json())
                 else:
-                    context_str += f"{key}: {str(value)}\n"
-            messages.append({"role": "system", "content": context_str})
-            
+                    context_dict[key] = str(value)
+            messages.append({"role": "system", "content": json.dumps(context_dict, indent=2)})
+
+        if kwargs:
+            extra_context_dict = {}
+            for key, value in kwargs.items():
+                if isinstance(value, BaseModel):
+                    extra_context_dict[key] = json.loads(value.model_dump_json())
+                else:
+                    extra_context_dict[key] = str(value)
+            messages.append({"role": "system", "content": json.dumps(extra_context_dict, indent=2)})
+
         messages.extend(message_parts)
         return messages
 
-    def true_or_false(self, question: str) -> bool:
+    def is_true(self, question: str, **kwargs) -> bool:
+        class IsItTrue(BaseModel):
+            is_it_true: bool
         """Ask a yes/no question and get a boolean response"""
-        def _execute():
-            messages = self._build_messages(
-                {"role": "user", "content": question}
-            )
-            result = self.generate_object(Boolean)
-            return result.result
-        return self._retry_on_error(_execute)
+        ret = self.generate_object(IsItTrue, question=question, **kwargs)
+        return ret.is_it_true
 
-    def get_key(self, options: Dict[str, str]) -> str:
+    def classify(self, options: Dict[str, str], **kwargs) -> str:
         """Get a key from provided options based on context"""
         def _execute():
             if not options:
@@ -104,7 +112,8 @@ class FlatAI:
                 
             messages = self._build_messages(
                 {"role": "system", "content": f"You must respond with one of these keys: {', '.join(options.keys())}"},
-                {"role": "user", "content": f"Options descriptions:\n{json.dumps(options, indent=2)}"}
+                {"role": "user", "content": f"Options descriptions:\n{json.dumps(options, indent=2)}"},
+                **kwargs
             )
 
             response = self.client.chat.completions.create(
@@ -112,7 +121,7 @@ class FlatAI:
                 messages=messages
             )
             
-            result = response.choices[0].message.content.strip()
+            result = response.choices[0].message.content.strip().strip('"\'')
             
             if result not in options:
                 raise ValueError(f"LLM returned invalid key '{result}'. Must be one of: {', '.join(options.keys())}")
@@ -120,7 +129,7 @@ class FlatAI:
             return result
         return self._retry_on_error(_execute)
 
-    def generate_object(self, schema_class: Type[BaseModel | Any]) -> Any:
+    def generate_object(self, schema_class: Type[BaseModel | Any], **kwargs) -> Any:
         """Generate an object matching the provided schema"""
         def _execute():
             # Handle typing generics (List, Dict, etc)
@@ -167,7 +176,8 @@ class FlatAI:
                 raise ValueError(f"Unsupported schema type: {schema_class}")
 
             messages = self._build_messages(
-                {"role": "user", "content": f"Generate object matching schema: {json.dumps(schema)}"}
+                {"role": "user", "content": "Based on the provided context and information, generate a complete and accurate object that precisely matches the schema. Use all relevant details to populate the fields with meaningful, appropriate values that best represent the data."},
+                **kwargs
             )
 
             response = self.client.chat.completions.create(
@@ -186,45 +196,24 @@ class FlatAI:
             # Handle single Pydantic model
             elif isinstance(schema_class, type) and issubclass(schema_class, BaseModel):
                 return schema_class.model_validate(result)
+            
             return result
         return self._retry_on_error(_execute)
 
-    def call_function(self, func: Callable) -> Any:
+    def call_function(self, func: Callable, **kwargs) -> Any:
         """Call a function with AI-determined arguments"""
-        def _execute():
-            signature = inspect.signature(func)
-            schema = {
-                "type": "object",
-                "properties": {
-                    param: {"type": "string"} for param in signature.parameters
-                },
-                "required": [param for param, sig in signature.parameters.items() 
-                            if sig.default == inspect.Parameter.empty]
-            }
+        func, args = self.pick_a_function(f"Call the function {func.__name__} with the most appropriate arguments based on the context", [func], **kwargs)
+        return func(**args)
 
-            messages = self._build_messages(
-                {"role": "system", "content": "Determine appropriate arguments for the function call based on context"},
-                {"role": "user", "content": f"Function: {func.__name__}\nSignature: {signature}"}
-            )
-
-            response = self.client.chat.completions.create(
-                model=self.model,
-                response_format={"type": "json_object", "schema": schema},
-                messages=messages
-            )
-
-            args = json.loads(response.choices[0].message.content)
-            return func(**args)
-        return self._retry_on_error(_execute)
-
-    def pick_a_function(self, instructions: str, functions: List[Callable]) -> tuple[Callable, Dict]:
+    def pick_a_function(self, instructions: str, functions: List[Callable], **kwargs) -> tuple[Callable, Dict]:
         """Pick appropriate function and arguments based on instructions"""
         def _execute():
             tools = [create_openai_function_description(func) for func in functions]
 
             messages = self._build_messages(
                 {"role": "system", "content": instructions},
-                {"role": "user", "content": "Please select and call the most appropriate function for this context."}
+                {"role": "user", "content": "Based on all the provided context and information, analyze and select the most appropriate function from the available options. Then, determine and specify the optimal parameters for that function to achieve the intended outcome."},
+                **kwargs
             )
 
             response = self.client.chat.completions.create(
@@ -235,16 +224,25 @@ class FlatAI:
 
             tool_call = response.choices[0].message.tool_calls[0]
             chosen_func = next(f for f in functions if f.__name__ == tool_call.function.name)
-            args = json.loads(tool_call.function.arguments)
+            
+            args = json.loads(tool_call.function.arguments, strict=False)
+            # Convert string lists back to actual lists
+            for key, value in args.items():
+                if isinstance(value, str) and value.startswith('[') and value.endswith(']'):
+                    try:
+                        args[key] = json.loads(value, strict=False)
+                    except json.JSONDecodeError:
+                        pass
 
             return chosen_func, args
         return self._retry_on_error(_execute)
 
-    def get_string(self, prompt: str) -> str:
+    def get_string(self, prompt: str, **kwargs) -> str:
         """Get a simple string response from the LLM"""
         def _execute():
             messages = self._build_messages(
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
+                **kwargs
             )
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -253,11 +251,12 @@ class FlatAI:
             return response.choices[0].message.content
         return self._retry_on_error(_execute)
 
-    def get_stream(self, prompt: str) -> Iterable[str]:
+    def get_stream(self, prompt: str, **kwargs) -> Iterable[str]:
         """Get a streaming response from the LLM"""
         def _execute():
             messages = self._build_messages(
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
+                **kwargs
             )
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -294,18 +293,38 @@ def create_openai_function_description(func: Callable) -> Dict[str, Any]:
 
     for param_name, param in signature.parameters.items():
         param_info = {
-            "type": "string",  # Default to string, adjust as needed
             "description": ""  # Initialize description
         }
-        
+
+        # Try to get type from type annotation first
         if param.annotation != inspect.Parameter.empty:
-            if param.annotation == int:
-                param_info["type"] = "integer"
-            elif param.annotation == float:
-                param_info["type"] = "number"
-            elif param.annotation == bool:
-                param_info["type"] = "boolean"
-            # Add more type mappings as needed
+            if hasattr(param.annotation, '__origin__'):
+                if param.annotation.__origin__ == list:
+                    param_info["type"] = "array"
+                    if hasattr(param.annotation, '__args__'):
+                        inner_type = param.annotation.__args__[0]
+                        if inner_type == str:
+                            param_info["items"] = {"type": "string"}
+                        elif inner_type == int:
+                            param_info["items"] = {"type": "integer"}
+                        elif inner_type == float:
+                            param_info["items"] = {"type": "number"}
+                        elif inner_type == bool:
+                            param_info["items"] = {"type": "boolean"}
+                elif param.annotation.__origin__ == dict:
+                    param_info["type"] = "object"
+            else:
+                if param.annotation == str:
+                    param_info["type"] = "string"
+                elif param.annotation == int:
+                    param_info["type"] = "integer"
+                elif param.annotation == float:
+                    param_info["type"] = "number"
+                elif param.annotation == bool:
+                    param_info["type"] = "boolean"
+        else:
+            # Default to string if no type info available
+            param_info["type"] = "string"
 
         if param.default != inspect.Parameter.empty:
             param_info["default"] = param.default
@@ -324,7 +343,6 @@ def create_openai_function_description(func: Callable) -> Dict[str, Any]:
         function_description["parameters"]["properties"][param_name] = param_info
 
     return {"type": "function", "function": function_description}
-
 
 
 
