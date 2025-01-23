@@ -81,7 +81,7 @@ class EmailSummary(BaseModel):
     label: str
 
 
-ret = llm.generate_object(EmailSummary, email=email)
+email_summary = llm.generate_object(EmailSummary, email=email)
 ```
 
 
@@ -104,7 +104,8 @@ class ActionItem(BaseModel):
 object_schema = List[ActionItem]
 
 for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
-    -- do something
+    print(action_item.due_date)
+    -- do your thing
 ```
 
 ### Function Calling
