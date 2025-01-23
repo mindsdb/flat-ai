@@ -100,15 +100,11 @@ class ActionItem(BaseModel):
     assignee_name: str
     assignee_email: str
 
+# we want to generate a list of action items
 object_schema = List[ActionItem]
 
-# lets pass the context to the LLM once, so we don't have to pass it every time
-llm.set_context(email=email, today = date.today())
-if llm.true_or_false('are there action items in this email?'):
-    for action_item in llm.generate_object(object_schema):
-        -- do something
-
-llm.clear_context()
+for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
+    -- do something
 ```
 
 ### Function Calling
@@ -125,9 +121,10 @@ def send_calendar_invite(
     attendees = List[str]):
     -- send a calendar invite to the meeting
 
-
-if llm.true_or_false('is this an email requesting for a meeting?', email=email):
-    ret = llm.call_function(send_calendar_invite, email=email, today = date.today())
+# we want to send a calendar invite if the email is requesting for a meeting
+llm.set_context(email=email, today = date.today())
+if llm.true_or_false('is this an email requesting for a meeting?'):
+    ret = llm.call_function(send_calendar_invite)
 ``` 
 
 ### Function picking
