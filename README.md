@@ -18,15 +18,12 @@ If you want to play straight with a notebook:
 
 [Tutorial Jupyter Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
 
-# Frameworkless AI-Agents and Workflows
+## Frameworkless AI-Agents and Workflows
 
- *"Agents can handle sophisticated tasks, but their implementation is often straightforward. They are typically just LLMs using tools based on environmental feedback in a loop."* -- Anthropic AI prophet
-
-
-**Translation:** It's basically a Python script doing the hokey pokey with an API - you put the prompt in, you get the output out, an *if/else* here and there, you do the *while loop* and shake it all about. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Thank goodness Guido van Rossum had that wild weekend in '89 and blessed us with *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons.
+ *"Agents are typically just LLMs using tools and logic in a loop."* It's basically a Python script doing the hokey pokey with an API - you put the prompt in, you get the output out, an *if/else* here and there, you do the *while loop* and shake it all about. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Thank goodness Guido van Rossum had that wild weekend in '89 and blessed us with *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons.
 
 
-### GATES: 
+### Gates 
 
 <img width="534" alt="image" src="https://github.com/user-attachments/assets/921734fc-49b6-4efd-b702-d00d3f9b60e4" />
 
