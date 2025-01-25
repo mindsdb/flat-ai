@@ -81,7 +81,7 @@ email_summary = llm.generate_object(EmailSummary, email=email)
 
 <img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
 
-Work simultaneously on a task and have their outputs aggregated programmatically
+There will be times, where you will want work to happen simultaneously. For example deal with a list of action items at once as opposed to one at a time.
 
 ```python
 from concurrent.futures import ThreadPoolExecutor
@@ -95,7 +95,7 @@ class ActionItem(BaseModel):
 object_schema = List[ActionItem]
 
 # Generate action items
-action_items = llm.generate_object(object_schema, email="example@example.com", today=date.today())
+action_items = llm.generate_object(object_schema, email=email)
 
 # Function to handle the "do your thing" logic
 def process_action_item(action_item: ActionItem):
@@ -187,7 +187,21 @@ for chunk in llm.get_stream('what is the subject of the email?', email=email):
     print(chunk)
 ```
 
+## Observability
 
+Ever wondered what your LLM does in its spare time? Catch all its embarrassing moments with:
+
+```python
+from flat_ai import configure_logging
+
+configure_logging('llm.log')
+```
+
+Heard of the command tail?, you can use it to see the logs:
+
+```shell
+tail -f llm.log
+```
 
 
 ## Painless Context
