@@ -2,7 +2,7 @@
 
 # F.L.A.T. (Frameworkless LLM Agent... Thing)
 
-Welcome to the "Build AI Apps Without Frameworks" masterclass! an AI library so, soo tiny and simple, it makes minimalists look like hoarders.
+Welcome to the "Build AI Apps Without Frameworks" masterclass! an AI library so, soo tiny and simple, it makes minimalists look like hoarders. Showcasing that it is possible to leverage the power of LLMs in Agents though absolute simplicity:
 
 ```shell
 pip install flat-ai
@@ -11,7 +11,7 @@ And you're ready to go!
 
 ```python
 from flat_ai import FlatA
-# works with ollama, openi, together, groq ...
+# works with ollama, openai, together, groq ...
 llm = FlatAI(api_key='', base_url='http://localhost:11434/v1', model='llama3')
 ```
 If you want to play straight with a notebook:
