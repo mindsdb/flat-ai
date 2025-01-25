@@ -14,15 +14,11 @@ from flat_ai import FlatA
 # works with ollama, openi, together, groq ...
 llm = FlatAI(api_key='', base_url='http://localhost:11434/v1', model='llama3')
 ```
-
-
-## Let's get started
-
-If you want to play straight with a notebook. Best and fastest way, is to get your teeth to it:
+If you want to play straight with a notebook:
 
 [Tutorial Jupyter Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
 
-# AI-Agents and Workflows
+# Frameworkless AI-Agents and Workflows
 
  *"Agents can handle sophisticated tasks, but their implementation is often straightforward. They are typically just LLMs using tools based on environmental feedback in a loop."* -- Anthropic AI prophet
 
