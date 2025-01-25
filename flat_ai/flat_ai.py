@@ -28,6 +28,7 @@ import re
 from typing import Any, Callable, Dict, List, Optional, Type, Union, Iterable
 import openai
 from pydantic import BaseModel, Field
+from typing import Literal
 import time
 from flat_ai.trace_llm import MyOpenAI
 
@@ -36,8 +37,17 @@ class Boolean(BaseModel):
     result: bool = Field(description="The true/false result based on the question and context")
 
 class FlatAI:
-    def __init__(self, client: openai.OpenAI, model: str = "gpt-4", retries: int = 3):
-        self.client = client
+    def __init__(self, client: Optional[openai.OpenAI] = None, model: str = "gpt-4", retries: int = 3, base_url: str = "https://api.openai.com/v1", api_key: Optional[str] = None):
+        if client:
+            self.client = client
+        elif api_key:
+            self.client = openai.OpenAI(
+                base_url=base_url,
+                api_key=api_key
+            )
+        else:
+            raise ValueError("Must provide either client or api_key")
+            
         self.model = model
         self.retries = retries
         self._context = {}
@@ -97,36 +107,25 @@ class FlatAI:
         messages.extend(message_parts)
         return messages
 
-    def is_true(self, question: str, **kwargs) -> bool:
+    def is_true(self, _question: str, **kwargs) -> bool:
         class IsItTrue(BaseModel):
             is_it_true: bool
         """Ask a yes/no question and get a boolean response"""
-        ret = self.generate_object(IsItTrue, question=question, **kwargs)
+        ret = self.generate_object(IsItTrue, question=_question, **kwargs)
         return ret.is_it_true
 
     def classify(self, options: Dict[str, str], **kwargs) -> str:
         """Get a key from provided options based on context"""
+        class Classification(BaseModel):
+            choice: str = Field(description="The selected classification key", enum=list(options.keys()))
+
         def _execute():
             if not options:
                 raise ValueError("Options dictionary cannot be empty")
-                
-            messages = self._build_messages(
-                {"role": "system", "content": f"You must respond with one of these keys: {', '.join(options.keys())}"},
-                {"role": "user", "content": f"Options descriptions:\n{json.dumps(options, indent=2)}"},
-                **kwargs
-            )
-
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages
-            )
             
-            result = response.choices[0].message.content.strip().strip('"\'')
+            result = self.generate_object(Classification, options=options)
+            return result.choice
             
-            if result not in options:
-                raise ValueError(f"LLM returned invalid key '{result}'. Must be one of: {', '.join(options.keys())}")
-                
-            return result
         return self._retry_on_error(_execute)
 
     def generate_object(self, schema_class: Type[BaseModel | Any], **kwargs) -> Any:
@@ -202,7 +201,7 @@ class FlatAI:
 
     def call_function(self, func: Callable, **kwargs) -> Any:
         """Call a function with AI-determined arguments"""
-        func, args = self.pick_a_function(f"Call the function {func.__name__} with the most appropriate arguments based on the context", [func], **kwargs)
+        func, args = self.pick_a_function("", [func], **kwargs)
         return func(**args)
 
     def pick_a_function(self, instructions: str, functions: List[Callable], **kwargs) -> tuple[Callable, Dict]:
