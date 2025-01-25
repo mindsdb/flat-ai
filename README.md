@@ -30,9 +30,6 @@ If you want to play straight with a notebook. Best and fastest way, is to get yo
 **Translation:** It's basically a Python script doing the hokey pokey with an API - you put the prompt in, you get the output out, an *if/else* here and there, you do the *while loop* and shake it all about. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Thank goodness Guido van Rossum had that wild weekend in '89 and blessed us with *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons.
 
 
-
-## Building Blocks
-
 ### GATES: 
 
 <img width="534" alt="image" src="https://github.com/user-attachments/assets/921734fc-49b6-4efd-b702-d00d3f9b60e4" />
@@ -46,7 +43,7 @@ else:
     -- do something else
 ```
 
-### Workflow: Routing
+### Routing
 <img width="576" alt="image" src="https://github.com/user-attachments/assets/deeee920-f0e0-4702-8981-993cef9ef958" />
 
 Similar to if/else statements, but for when your LLM needs to be more dramatic with its life choices. 
