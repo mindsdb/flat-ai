@@ -74,9 +74,7 @@ match llm.classify(options, email=email):
 
 ### Objects
 
-The thing here is that LLM's can deal masterfully with unstructured data. But Python can't, but using both we can build a bridge between the two.
-
-For that we weill need our LLM to fill out objects like a trained monkey with a PhD in data entry? Just define the shape and watch the magic! 🐒📝
+For most workflows, we will need our LLM to fill out objects like a trained monkey with a PhD in data entry. Just define the shape and watch the magic! 🐒📝
 
 *For example*, let's say we want to extract a summary of the email and a label for it:
 
@@ -89,28 +87,39 @@ class EmailSummary(BaseModel):
 email_summary = llm.generate_object(EmailSummary, email=email)
 ```
 
-### For-each Loops 
+### Parallelization
 
-Because all programming languages have them, and making your LLM do repetitive tasks is like having a genius do your laundry - hilarious but effective! Want a list of things? Just throw a schema at it and watch it spin like a hamster on a crack coated wheel. 
+<img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
 
-*For example*, let's say we want to extract a list of action items from an email
+Work simultaneously on a task and have their outputs aggregated programmatically
 
 ```python
+from concurrent.futures import ThreadPoolExecutor
+
 class ActionItem(BaseModel):
     action: str
-    status: str
-    priority: str
     due_date: str
-    assignee_name: str
     assignee_email: str
 
 # we want to generate a list of action items
 object_schema = List[ActionItem]
 
-for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
-    print(action_item.due_date)
+# Generate action items
+action_items = llm.generate_object(object_schema, email="example@example.com", today=date.today())
+
+# Function to handle the "do your thing" logic
+def process_action_item(action_item: ActionItem):
     -- do your thing
 
+# Use ThreadPoolExecutor to parallelize the work
+results = list(ThreadPoolExecutor().map(process_action_item, action_items))
+```
+
+Of course, you don't need to parallelize if you don't want to - you can use simple **for-each loops** instead.
+
+```python
+for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
+    -- do your thing
 ```
 
 ### Function Calling
