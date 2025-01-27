@@ -26,5 +26,6 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           # This uses the version string from __about__.py, which we checked matches the git tag above
-          python setup.py sdist
-          twine upload dist/* --verbose
+          pip install build
+          python -m build
+          twine upload dist/*
