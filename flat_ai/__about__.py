@@ -1,4 +1,4 @@
-__title__ = 'flat-ai'
+__title__ = 'flat_ai'
 __package_name__ = 'flat_ai'
 __version__ = '0.3.0'
 __description__ = 'F.L.A.T. (Frameworkless LLM Agent Thing) for building AI Agents'

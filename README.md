@@ -5,7 +5,7 @@
 Welcome to the "Build AI Apps Without Frameworks" masterclass! an AI library so, soo tiny and simple, it makes minimalists look like hoarders. Showcasing that it is possible to leverage the power of LLMs in Agents though absolute simplicity:
 
 ```shell
-pip install flat-ai
+pip install flat_ai
 ```
 And you're ready to go! 
 
