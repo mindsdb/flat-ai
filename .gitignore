@@ -5,7 +5,7 @@ __pycache__/
 *.logs
 # C extensions
 *.so
-
+test_local.py
 # Distribution / packaging
 .Python
 build/

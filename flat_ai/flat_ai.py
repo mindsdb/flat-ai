@@ -153,13 +153,14 @@ class FlatAI:
         """Generate an object matching the provided schema"""
         
         # LIST OF Pydantic models
-        class ObjectList(BaseModel):
-            items: List[schema_class]
+        class ObjectArray(BaseModel):   
+            items: List[schema_class.__args__[0]] if hasattr(schema_class, "__origin__") and schema_class.__origin__ == list else List[schema_class]
+
         # if its a list of Pydantic models, we need to create a new schema for the array
-        if get_origin(schema_class) is list:
+        if hasattr(schema_class, "__origin__") and schema_class.__origin__ == list:
             is_list = True
             schema_name = schema_class.__args__[0].__name__+"Array"
-            schema = ObjectList.model_json_schema()
+            schema = ObjectArray.model_json_schema()
         # Handle Pydantic models
         else:
             is_list = False
@@ -204,9 +205,8 @@ class FlatAI:
 
             # Handle list of Pydantic models
             if is_list:
-                return [
-                    ObjectList.model_validate(result).items for item in result
-                ]
+                items = ObjectArray.model_validate(result).items
+                return items
             # Handle single Pydantic model
             else:
                 return schema_class.model_validate(result)
