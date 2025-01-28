@@ -60,6 +60,7 @@ class FlatAI:
         self.model = model
         self.retries = retries
         self._context = {}
+        self.base_url = base_url
 
     def _retry_on_error(self, func: Callable, *args, **kwargs) -> Any:
         """Helper method to retry operations on failure"""
@@ -173,7 +174,7 @@ class FlatAI:
             )
 
             # if Fireworks or Together use a different response format
-            if self.client.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
+            if self.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     response_format={
