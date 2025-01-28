@@ -202,25 +202,19 @@ class FlatAI:
                 **kwargs,
             )
 
-            if isinstance(self.client, MyOpenAI):
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={
-                        "type": "json_schema",
-                        "json_schema": {
-                            "name": schema_class.__name__,
-                            "schema": schema,
-                        },
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": schema_class.__name__,
+                        "schema": schema,
                     },
-                    messages=messages,
-                )
-            else:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={"type": "json_object", "schema": schema},
-                    messages=messages,
-                )
-
+                },
+                messages=messages,
+            )
+            
             result = json.loads(response.choices[0].message.content)
 
             # Handle list of Pydantic models
