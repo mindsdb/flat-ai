@@ -159,11 +159,10 @@ class FlatAI:
                 }
                 schema_name = schema_class.__args__[0].__name__+"Array"
             # Handle Pydantic models
-            elif isinstance(schema_class, type) and issubclass(schema_class, BaseModel):
+            else:
                 schema = schema_class.model_json_schema()
                 schema_name = schema_class.__name__
-            else:
-                raise ValueError(f"Unsupported schema type: {schema_class}")
+            
 
             messages = self._build_messages(
                 {
