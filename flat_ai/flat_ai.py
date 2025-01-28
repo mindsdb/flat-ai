@@ -25,7 +25,7 @@ import inspect
 import json
 import re
 import time
-from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, Type, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Type, get_origin
 
 import openai
 from pydantic import BaseModel, Field
@@ -148,31 +148,34 @@ class FlatAI:
 
         return self._retry_on_error(_execute)
 
+    
     def generate_object(self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs) -> Any:
         """Generate an object matching the provided schema"""
+        
+        # LIST OF Pydantic models
+        class ObjectList(BaseModel):
+            items: List[schema_class]
+        # if its a list of Pydantic models, we need to create a new schema for the array
+        if get_origin(schema_class) is list:
+            is_list = True
+            schema_name = schema_class.__args__[0].__name__+"Array"
+            schema = ObjectList.model_json_schema()
+        # Handle Pydantic models
+        else:
+            is_list = False
+            schema = schema_class.model_json_schema()
+            schema_name = schema_class.__name__
 
+        messages = self._build_messages(
+            {
+                "role": "user",
+                "content": "Based on the provided context and information, generate a complete and accurate object that precisely matches the schema. Use all relevant details to populate the fields with meaningful, appropriate values that best represent the data.",
+            },
+            **kwargs,
+        )
+        
         def _execute():
-            # if its a list of Pydantic models, we need to create a new schema for the array
-            if hasattr(schema_class, "__origin__") and schema_class.__origin__ is list:
-                schema = {
-                    "type": "array",
-                    "items": schema_class.__args__[0].model_json_schema()
-                }
-                schema_name = schema_class.__args__[0].__name__+"Array"
-            # Handle Pydantic models
-            else:
-                schema = schema_class.model_json_schema()
-                schema_name = schema_class.__name__
             
-
-            messages = self._build_messages(
-                {
-                    "role": "user",
-                    "content": "Based on the provided context and information, generate a complete and accurate object that precisely matches the schema. Use all relevant details to populate the fields with meaningful, appropriate values that best represent the data.",
-                },
-                **kwargs,
-            )
-
             # if Fireworks or Together use a different response format
             if self.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
                 response = self.client.chat.completions.create(
@@ -200,19 +203,13 @@ class FlatAI:
             result = json.loads(response.choices[0].message.content)
 
             # Handle list of Pydantic models
-            if (
-                hasattr(schema_class, "__origin__")
-                and schema_class.__origin__ is list
-                and issubclass(schema_class.__args__[0], BaseModel)
-            ):
+            if is_list:
                 return [
-                    schema_class.__args__[0].model_validate(item) for item in result
+                    ObjectList.model_validate(result).items for item in result
                 ]
             # Handle single Pydantic model
-            elif isinstance(schema_class, type) and issubclass(schema_class, BaseModel):
+            else:
                 return schema_class.model_validate(result)
-
-            return result
 
         return self._retry_on_error(_execute)
 
@@ -225,19 +222,20 @@ class FlatAI:
         self, instructions: str, functions: List[Callable], **kwargs
     ) -> tuple[Callable, Dict]:
         """Pick appropriate function and arguments based on instructions"""
+        
+        tools = [create_openai_function_description(func) for func in functions]
+
+        messages = self._build_messages(
+            {"role": "system", "content": instructions},
+            {
+                "role": "user",
+                "content": "Based on all the provided context and information, analyze and select the most appropriate function from the available options. Then, determine and specify the optimal parameters for that function to achieve the intended outcome.",
+            },
+            **kwargs,
+        )
 
         def _execute():
-            tools = [create_openai_function_description(func) for func in functions]
-
-            messages = self._build_messages(
-                {"role": "system", "content": instructions},
-                {
-                    "role": "user",
-                    "content": "Based on all the provided context and information, analyze and select the most appropriate function from the available options. Then, determine and specify the optimal parameters for that function to achieve the intended outcome.",
-                },
-                **kwargs,
-            )
-
+            
             response = self.client.chat.completions.create(
                 model=self.model, messages=messages, tools=tools
             )
@@ -368,3 +366,5 @@ def create_openai_function_description(func: Callable) -> Dict[str, Any]:
         function_description["parameters"]["properties"][param_name] = param_info
 
     return {"type": "function", "function": function_description}
+
+
