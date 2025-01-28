@@ -45,7 +45,7 @@ class FlatAI:
     def __init__(
         self,
         client: Optional[openai.OpenAI] = None,
-        model: str = "gpt-4",
+        model: str = "gpt-4o",
         retries: int = 3,
         base_url: str = "https://api.openai.com/v1",
         api_key: Optional[str] = None,
@@ -147,50 +147,21 @@ class FlatAI:
 
         return self._retry_on_error(_execute)
 
-    def generate_object(self, schema_class: Type[BaseModel | Any], **kwargs) -> Any:
+    def generate_object(self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs) -> Any:
         """Generate an object matching the provided schema"""
 
         def _execute():
-            # Handle typing generics (List, Dict, etc)
-            if hasattr(schema_class, "__origin__"):
-                if schema_class.__origin__ is list:
-                    item_type = schema_class.__args__[0]
-                    if issubclass(item_type, BaseModel):
-                        schema = {
-                            "type": "array",
-                            "items": item_type.model_json_schema(),
-                        }
-                    else:
-                        schema = {
-                            "type": "array",
-                            "items": {
-                                "type": {
-                                    str: "string",
-                                    int: "integer",
-                                    float: "number",
-                                    bool: "boolean",
-                                }.get(item_type, "string")
-                            },
-                        }
-                else:
-                    raise ValueError(f"Unsupported generic type: {schema_class}")
-            # Handle basic Python types
-            elif schema_class in (list, dict, str, int, float, bool):
+            # if its a list of Pydantic models, we need to create a new schema for the array
+            if hasattr(schema_class, "__origin__") and schema_class.__origin__ is list:
                 schema = {
-                    "type": {
-                        list: "array",
-                        dict: "object",
-                        str: "string",
-                        int: "integer",
-                        float: "number",
-                        bool: "boolean",
-                    }.get(schema_class, "string")
+                    "type": "array",
+                    "items": schema_class.__args__[0].model_json_schema()
                 }
-                if schema["type"] == "array":
-                    schema["items"] = {"type": "string"}  # Default to string items
+                schema_name = schema_class.__args__[0].__name__+"Array"
             # Handle Pydantic models
             elif isinstance(schema_class, type) and issubclass(schema_class, BaseModel):
                 schema = schema_class.model_json_schema()
+                schema_name = schema_class.__name__
             else:
                 raise ValueError(f"Unsupported schema type: {schema_class}")
 
@@ -202,18 +173,29 @@ class FlatAI:
                 **kwargs,
             )
 
-            
-            response = self.client.chat.completions.create(
-                model=self.model,
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": schema_class.__name__,
-                        "schema": schema,
+            # if Fireworks or Together use a different response format
+            if self.client.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    response_format={
+                        "type": "json_object",
+                        "schema": schema
                     },
-                },
-                messages=messages,
-            )
+                    messages=messages,
+                )
+            else:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    response_format={
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": schema_name,
+                            "schema": schema
+                        },
+                    },
+                    messages=messages,
+                )
+                
             
             result = json.loads(response.choices[0].message.content)
 
