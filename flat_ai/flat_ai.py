@@ -148,26 +148,6 @@ class FlatAI:
 
         return openai_kwargs, custom_kwargs
 
-    def _call_openai_chat_completion(
-        self, messages: List[Dict[str, Any]], **kwargs
-    ) -> Any:
-        """
-        Private helper that:
-        1) Splits kwargs into openai_kwargs and custom_kwargs.
-        2) Applies default settings (like model) if not provided.
-        3) Calls self.client.chat.completions.create(...) with the final parameters.
-        4) Returns the raw response.
-        """
-        openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
-
-        if "model" not in openai_kwargs:
-            openai_kwargs["model"] = self.model
-
-        openai_kwargs["messages"] = messages
-
-        response = self.client.chat.completions.create(**openai_kwargs)
-        return response
-
     def _build_messages(self, *message_parts, **kwargs) -> List[Dict[str, str]]:
         """Build message list with context as system message if present"""
         messages = []
