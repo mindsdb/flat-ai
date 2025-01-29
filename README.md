@@ -166,7 +166,8 @@ else
     send a calendar invites to the meeting
 """
 
-function, args = llm.pick_a_function(instructions, [send_calendar_invite, send_email], email=email, today = date.today())
+functions_to_call = llm.pick_a_function([send_calendar_invite, send_email], instructions = instructions,  email=email, today = date.today())
+functions_to_call() # this will call the functions with the arguments
 ```
 
 
