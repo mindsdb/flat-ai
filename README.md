@@ -10,7 +10,7 @@ pip install flat-ai
 And you're ready to go! 
 
 ```python
-from flat_ai import FlatA
+from flat_ai import FlatAI
 # works with ollama, openai, together, anyscale ...
 llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini', base_url='https://api.openai.com/v1')
 ```
