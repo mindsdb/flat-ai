@@ -45,7 +45,7 @@ class FlatAI:
     def __init__(
         self,
         client: Optional[openai.OpenAI] = None,
-        model: str = "gpt-4o",
+        model: str = "gpt-4o-mini",
         retries: int = 3,
         base_url: str = "https://api.openai.com/v1",
         api_key: Optional[str] = None,
