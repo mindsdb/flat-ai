@@ -137,7 +137,7 @@ class FlatAI:
         """Get a key from provided options based on context"""
 
         class Classification(BaseModel):
-            choice: str = Field(
+            category: str = Field(
                 description="The selected classification key", enum=list(options.keys())
             )
 
@@ -145,8 +145,8 @@ class FlatAI:
             if not options:
                 raise ValueError("Options dictionary cannot be empty")
 
-            result = self.generate_object(Classification, options=options)
-            return result.choice
+            result = self.generate_object(Classification, instructions='choose the category that best matches the context from the _category_options, make sure you take into account the options descriptions in the context.', _category_options=options, **kwargs)
+            return result.category
 
         return self._retry_on_error(_execute)
 
