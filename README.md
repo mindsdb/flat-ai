@@ -188,6 +188,20 @@ for chunk in llm.get_stream('what is the subject of the email?', email=email):
     print(chunk)
 ```
 
+## LLM optional in-flight Configuration 
+
+Need to tweak those LLM parameters on the fly? We've got you covered with a slick configuration pattern. You can temporarily override any LLM configuration parameter (model, temperature, etc.) for a specific call without affecting the base configuration:
+
+```python
+# Use different model and temperature for just this call
+llm(model='gpt-4', temperature=0.7).is_true('is this email urgent?', email=email)
+
+# Use base configuration
+llm.is_true('is this email urgent?', email=email)
+```
+
+This pattern works with any OpenAI API parameter (temperature, top_p, frequency_penalty, etc.) and keeps your code clean and flexible. The original LLM instance remains unchanged, so you can safely use different configurations for different calls without worrying about side effects.
+
 ## Observability
 
 Ever wondered what your LLM does in its spare time? Catch all its embarrassing moments with:
