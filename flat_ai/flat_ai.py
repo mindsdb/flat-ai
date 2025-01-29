@@ -46,6 +46,7 @@ class FlatAI:
         retries: int = 3,
         base_url: str = "https://api.openai.com/v1",
         api_key: Optional[str] = None,
+        **kwargs
     ):
         if client:
             self.client = client
@@ -58,6 +59,31 @@ class FlatAI:
         self.retries = retries
         self._context = OrderedDict()
         self.base_url = base_url
+        self.config = kwargs  # Store additional configuration parameters
+
+    def __call__(self, **kwargs) -> 'FlatAI':
+        """
+        Returns a new FlatAI instance with temporarily overridden configuration.
+        Example: llm(model='gpt-4', temperature=0.7).is_true('question')
+        """
+        # Create a new instance with the same base configuration
+        new_instance = FlatAI(
+            client=self.client,
+            model=self.model,
+            retries=self.retries,
+            base_url=self.base_url,
+            **self.config
+        )
+        
+        # Copy the existing context
+        new_instance._context = self._context.copy()
+        
+        # Override configuration with provided kwargs
+        if 'model' in kwargs:
+            new_instance.model = kwargs.pop('model')
+        new_instance.config.update(kwargs)
+        
+        return new_instance
 
     def _retry_on_error(self, func: Callable, *args, **kwargs) -> Any:
         """Helper method to retry operations on failure"""
@@ -178,30 +204,33 @@ class FlatAI:
         )
         
         def _execute():
+            # Prepare API call parameters
+            api_params = {
+                "model": self.model,
+                "messages": messages,
+                **self.config  # Include any additional configuration parameters
+            }
             
             # if Fireworks or Together use a different response format
             if self.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={
+                api_params.update({
+                    "response_format": {
                         "type": "json_object",
                         "schema": schema
-                    },
-                    messages=messages,
-                )
+                    }
+                })
             else:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={
+                api_params.update({
+                    "response_format": {
                         "type": "json_schema",
                         "json_schema": {
                             "name": schema_name,
                             "schema": schema
-                        },
-                    },
-                    messages=messages,
-                )
+                        }
+                    }
+                })
                 
+            response = self.client.chat.completions.create(**api_params)
             
             result = json.loads(response.choices[0].message.content)
 
@@ -248,7 +277,11 @@ class FlatAI:
             functions_to_call = FunctionsToCall()
             
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, tools=tools, tool_choice = tool_choice
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                tool_choice=tool_choice,
+                **self.config  # Include any additional configuration parameters
             )
 
             # Process all tool calls if there are any
@@ -301,7 +334,9 @@ class FlatAI:
                 {"role": "user", "content": prompt}, **kwargs
             )
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages
+                model=self.model,
+                messages=messages,
+                **self.config  # Include any additional configuration parameters
             )
             return response.choices[0].message.content
 
@@ -315,7 +350,10 @@ class FlatAI:
                 {"role": "user", "content": prompt}, **kwargs
             )
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, stream=True
+                model=self.model,
+                messages=messages,
+                stream=True,
+                **self.config  # Include any additional configuration parameters
             )
             for chunk in response:
                 if chunk.choices[0].delta.content is not None:
