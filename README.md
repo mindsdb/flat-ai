@@ -11,8 +11,8 @@ And you're ready to go!
 
 ```python
 from flat_ai import FlatA
-# works with ollama, openai, together, groq ...
-llm = FlatAI(api_key='', base_url='http://localhost:11434/v1', model='llama3')
+# works with ollama, openai, together, anyscale ...
+llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini', base_url='https://api.openai.com/v1')
 ```
 If you want to play straight with a notebook:
 
