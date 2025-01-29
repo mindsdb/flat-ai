@@ -21,22 +21,24 @@ License: MIT (Because sharing is caring, and lawyers are expensive)
 Author: Your Friendly Neighborhood AI Wrangler
 """
 
-
 import json
-
 import time
+import traceback
 from collections import OrderedDict
 from typing import Any, Callable, Dict, Iterable, List, Optional, Type
 
 import openai
 from pydantic import BaseModel, Field
-import traceback
 
-from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall
+from flat_ai.function_helpers import (
+    FunctionCall,
+    FunctionsToCall,
+    create_openai_function_description,
+)
 from flat_ai.trace_llm import MyOpenAI
 
-
 openai.OpenAI = MyOpenAI
+
 
 class FlatAI:
     def __init__(
@@ -67,7 +69,6 @@ class FlatAI:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                
                 last_exception = e
                 last_traceback = traceback.format_exc()
                 if attempt < self.retries - 1:
@@ -106,17 +107,17 @@ class FlatAI:
                     context_dict[key] = json.loads(value.model_dump_json())
                 else:
                     context_dict[key] = str(value)
-                    
+
         # Add/override with kwargs items while maintaining order
         if kwargs:
             for key, value in kwargs.items():
                 if value is None or value == "":
                     continue
                 if isinstance(value, BaseModel):
-                    context_dict[key] = json.loads(value.model_dump_json()) 
+                    context_dict[key] = json.loads(value.model_dump_json())
                 else:
                     context_dict[key] = str(value)
-                    
+
         if context_dict:
             messages.append(
                 {"role": "system", "content": json.dumps(context_dict, indent=2)}
@@ -138,30 +139,49 @@ class FlatAI:
 
         class Classification(BaseModel):
             choice: str = Field(
-                description="The selected classification key", enum=list(options.keys())
+                description=(
+                    "Select exactly one of the following classification keys. "
+                    "See 'classification_options' in the context for their meaning."
+                ),
+                enum=list(options.keys()),
             )
 
         def _execute():
             if not options:
                 raise ValueError("Options dictionary cannot be empty")
+            user_prompt = (
+                "You are given a set of labeled options, each key having a descriptive meaning. "
+                "Please analyze the context and choose exactly one of these keys:\n\n"
+                + json.dumps(options, indent=2)
+                + "\n\n"
+                "Return your final choice of classification key in the 'choice' field."
+            )
 
-            result = self.generate_object(Classification, options=options)
+            result = self.generate_object(
+                Classification, user_prompt=user_prompt, options=options, **kwargs
+            )
             return result.choice
 
         return self._retry_on_error(_execute)
 
-    
-    def generate_object(self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs) -> Any:
+    def generate_object(
+        self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs
+    ) -> Any:
         """Generate an object matching the provided schema"""
-        
+
         # LIST OF Pydantic models
-        class ObjectArray(BaseModel):   
-            items: List[schema_class.__args__[0]] if hasattr(schema_class, "__origin__") and schema_class.__origin__ == list else List[schema_class]
+        class ObjectArray(BaseModel):
+            items: (
+                List[schema_class.__args__[0]]
+                if hasattr(schema_class, "__origin__")
+                and schema_class.__origin__ == list
+                else List[schema_class]
+            )
 
         # if its a list of Pydantic models, we need to create a new schema for the array
         if hasattr(schema_class, "__origin__") and schema_class.__origin__ == list:
             is_list = True
-            schema_name = schema_class.__args__[0].__name__+"Array"
+            schema_name = schema_class.__args__[0].__name__ + "Array"
             schema = ObjectArray.model_json_schema()
         # Handle Pydantic models
         else:
@@ -176,17 +196,16 @@ class FlatAI:
             },
             **kwargs,
         )
-        
+
         def _execute():
-            
             # if Fireworks or Together use a different response format
-            if self.base_url in ["https://api.fireworks.ai/inference/v1", "https://api.together.xyz/v1"]:
+            if self.base_url in [
+                "https://api.fireworks.ai/inference/v1",
+                "https://api.together.xyz/v1",
+            ]:
                 response = self.client.chat.completions.create(
                     model=self.model,
-                    response_format={
-                        "type": "json_object",
-                        "schema": schema
-                    },
+                    response_format={"type": "json_object", "schema": schema},
                     messages=messages,
                 )
             else:
@@ -194,15 +213,11 @@ class FlatAI:
                     model=self.model,
                     response_format={
                         "type": "json_schema",
-                        "json_schema": {
-                            "name": schema_name,
-                            "schema": schema
-                        },
+                        "json_schema": {"name": schema_name, "schema": schema},
                     },
                     messages=messages,
                 )
-                
-            
+
             result = json.loads(response.choices[0].message.content)
 
             # Handle list of Pydantic models
@@ -221,14 +236,14 @@ class FlatAI:
         return func()
 
     def pick_a_function(
-        self, functions: List[Callable], _multiple_functions = True, **kwargs
+        self, functions: List[Callable], _multiple_functions=True, **kwargs
     ) -> FunctionsToCall:
         """Pick appropriate function and arguments based on instructions"""
         tool_choice = "required"
         if None in functions:
             tool_choice = "auto"
         functions = [f for f in functions if f is not None]
-        
+
         tools = [create_openai_function_description(func) for func in functions]
 
         if _multiple_functions:
@@ -237,35 +252,37 @@ class FlatAI:
             instruction_message = "Based on all the provided context and information, analyze and select the most appropriate function from the available options. Then, determine and specify the optimal parameters for that function to achieve the intended outcome."
 
         messages = self._build_messages(
-            {
-                "role": "user",
-                "content": instruction_message
-            },
+            {"role": "user", "content": instruction_message},
             **kwargs,
         )
 
         def _execute():
             functions_to_call = FunctionsToCall()
-            
+
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, tools=tools, tool_choice = tool_choice
+                model=self.model,
+                messages=messages,
+                tools=tools,
+                tool_choice=tool_choice,
             )
 
             # Process all tool calls if there are any
             tool_calls = response.choices[0].message.tool_calls or []
             content = response.choices[0].message.content
-            
+
             if tool_calls == [] and tool_choice == "required" and content:
-                raise Exception("No tools found") # This is an error that can be handled by the caller
+                raise Exception(
+                    "No tools found"
+                )  # This is an error that can be handled by the caller
 
             # If _multiple_functions is False, only process the first tool call
             if not _multiple_functions and len(tool_calls) > 0:
                 tool_calls = [tool_calls[0]]
-            
+
             for tool_call in tool_calls:
                 if tool_choice == "auto" and tool_call.function.name == "None":
                     continue
-                
+
                 chosen_func = next(
                     f for f in functions if f.__name__ == tool_call.function.name
                 )
@@ -283,10 +300,7 @@ class FlatAI:
                         except json.JSONDecodeError:
                             pass
 
-                function_call = FunctionCall(
-                    function=chosen_func,
-                    arguments=args
-                )
+                function_call = FunctionCall(function=chosen_func, arguments=args)
                 functions_to_call.functions.append(function_call)
 
             return functions_to_call
@@ -322,4 +336,3 @@ class FlatAI:
                     yield chunk.choices[0].delta.content
 
         return self._retry_on_error(_execute)
-
