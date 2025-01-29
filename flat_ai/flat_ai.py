@@ -25,7 +25,7 @@ import json
 import time
 import traceback
 from collections import OrderedDict
-from typing import Any, Callable, Dict, Iterable, List, Optional, Type
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type
 
 import openai
 from pydantic import BaseModel, Field
@@ -94,6 +94,79 @@ class FlatAI:
         """Remove specific keys from context"""
         for key in keys:
             self._context.pop(key, None)
+
+    def _parse_openai_kwargs(self, **kwargs) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """
+        Separate known OpenAI parameters from custom ones.
+        Returns (openai_kwargs, custom_kwargs).
+        """
+        openai_param_names = {
+            "model",
+            "audio",
+            "frequency_penalty",
+            "function_call",
+            "functions",
+            "logit_bias",
+            "logprobs",
+            "max_completion_tokens",
+            "max_tokens",
+            "metadata",
+            "modalities",
+            "n",
+            "parallel_tool_calls",
+            "prediction",
+            "presence_penalty",
+            "reasoning_effort",
+            "response_format",
+            "seed",
+            "service_tier",
+            "stop",
+            "store",
+            "stream",
+            "stream_options",
+            "temperature",
+            "tool_choice",
+            "tools",
+            "top_logprobs",
+            "top_p",
+            "user",
+            "extra_headers",
+            "extra_query",
+            "extra_body",
+            "timeout",
+        }
+        openai_kwargs = {}
+        custom_kwargs = {}
+        for key, value in kwargs.items():
+            if key in openai_param_names:
+                openai_kwargs[key] = value
+            else:
+                custom_kwargs[key] = value
+
+        if "model" not in openai_kwargs.keys():
+            openai_kwargs["model"] = self.model
+
+        return openai_kwargs, custom_kwargs
+
+    def _call_openai_chat_completion(
+        self, messages: List[Dict[str, Any]], **kwargs
+    ) -> Any:
+        """
+        Private helper that:
+        1) Splits kwargs into openai_kwargs and custom_kwargs.
+        2) Applies default settings (like model) if not provided.
+        3) Calls self.client.chat.completions.create(...) with the final parameters.
+        4) Returns the raw response.
+        """
+        openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
+
+        if "model" not in openai_kwargs:
+            openai_kwargs["model"] = self.model
+
+        openai_kwargs["messages"] = messages
+
+        response = self.client.chat.completions.create(**openai_kwargs)
+        return response
 
     def _build_messages(self, *message_parts, **kwargs) -> List[Dict[str, str]]:
         """Build message list with context as system message if present"""
@@ -189,12 +262,14 @@ class FlatAI:
             schema = schema_class.model_json_schema()
             schema_name = schema_class.__name__
 
+        openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
+
         messages = self._build_messages(
             {
                 "role": "user",
                 "content": "Based on the provided context and information, generate a complete and accurate object that precisely matches the schema. Use all relevant details to populate the fields with meaningful, appropriate values that best represent the data.",
             },
-            **kwargs,
+            **custom_kwargs,
         )
 
         def _execute():
@@ -203,20 +278,19 @@ class FlatAI:
                 "https://api.fireworks.ai/inference/v1",
                 "https://api.together.xyz/v1",
             ]:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={"type": "json_object", "schema": schema},
-                    messages=messages,
-                )
+                openai_kwargs["response_format"] = {
+                    "type": "json_object",
+                    "schema": schema,
+                }
             else:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    response_format={
-                        "type": "json_schema",
-                        "json_schema": {"name": schema_name, "schema": schema},
-                    },
-                    messages=messages,
-                )
+                openai_kwargs["response_format"] = {
+                    "type": "json_schema",
+                    "json_schema": {"name": schema_name, "schema": schema},
+                }
+
+            openai_kwargs["messages"] = messages
+
+            response = self.client.chat.completions.create(**openai_kwargs)
 
             result = json.loads(response.choices[0].message.content)
 
@@ -251,19 +325,20 @@ class FlatAI:
         else:
             instruction_message = "Based on all the provided context and information, analyze and select the most appropriate function from the available options. Then, determine and specify the optimal parameters for that function to achieve the intended outcome."
 
+        openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
         messages = self._build_messages(
             {"role": "user", "content": instruction_message},
-            **kwargs,
+            **custom_kwargs,
         )
 
         def _execute():
             functions_to_call = FunctionsToCall()
 
             response = self.client.chat.completions.create(
-                model=self.model,
                 messages=messages,
                 tools=tools,
                 tool_choice=tool_choice,
+                **openai_kwargs,
             )
 
             # Process all tool calls if there are any
@@ -311,11 +386,13 @@ class FlatAI:
         """Get a simple string response from the LLM"""
 
         def _execute():
+            openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
+
             messages = self._build_messages(
-                {"role": "user", "content": prompt}, **kwargs
+                {"role": "user", "content": prompt}, **custom_kwargs
             )
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages
+                messages=messages, **openai_kwargs
             )
             return response.choices[0].message.content
 
@@ -325,11 +402,12 @@ class FlatAI:
         """Get a streaming response from the LLM"""
 
         def _execute():
+            openai_kwargs, custom_kwargs = self._parse_openai_kwargs(**kwargs)
             messages = self._build_messages(
-                {"role": "user", "content": prompt}, **kwargs
+                {"role": "user", "content": prompt}, **custom_kwargs
             )
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, stream=True
+                messages=messages, stream=True, kwargs=openai_kwargs
             )
             for chunk in response:
                 if chunk.choices[0].delta.content is not None:
