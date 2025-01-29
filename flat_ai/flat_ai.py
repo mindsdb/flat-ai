@@ -251,32 +251,43 @@ class FlatAI:
                 model=self.model, messages=messages, tools=tools, tool_choice = tool_choice
             )
 
-            tool_call = response.choices[0].message.tool_calls[0]
-            if tool_choice == "auto" and tool_call.function.name == "None":
-                return functions_to_call
+            # Process all tool calls if there are any
+            tool_calls = response.choices[0].message.tool_calls or []
+            content = response.choices[0].message.content
             
-            chosen_func = next(
-                f for f in functions if f.__name__ == tool_call.function.name
-            )
+            if tool_calls == [] and tool_choice == "required" and content:
+                raise Exception("No tools found") # This is an error that can be handled by the caller
 
-            args = json.loads(tool_call.function.arguments, strict=False)
-            # Convert string lists back to actual lists
-            for key, value in args.items():
-                if (
-                    isinstance(value, str)
-                    and value.startswith("[")
-                    and value.endswith("]")
-                ):
-                    try:
-                        args[key] = json.loads(value, strict=False)
-                    except json.JSONDecodeError:
-                        pass
+            # If _multiple_functions is False, only process the first tool call
+            if not _multiple_functions and len(tool_calls) > 0:
+                tool_calls = [tool_calls[0]]
+            
+            for tool_call in tool_calls:
+                if tool_choice == "auto" and tool_call.function.name == "None":
+                    continue
+                
+                chosen_func = next(
+                    f for f in functions if f.__name__ == tool_call.function.name
+                )
 
-            function_call = FunctionCall(
-                function=chosen_func,
-                arguments=args
-            )
-            functions_to_call.functions.append(function_call)
+                args = json.loads(tool_call.function.arguments, strict=False)
+                # Convert string lists back to actual lists
+                for key, value in args.items():
+                    if (
+                        isinstance(value, str)
+                        and value.startswith("[")
+                        and value.endswith("]")
+                    ):
+                        try:
+                            args[key] = json.loads(value, strict=False)
+                        except json.JSONDecodeError:
+                            pass
+
+                function_call = FunctionCall(
+                    function=chosen_func,
+                    arguments=args
+                )
+                functions_to_call.functions.append(function_call)
 
             return functions_to_call
 
