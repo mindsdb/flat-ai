@@ -74,7 +74,7 @@ class MyOpenAI(sys.modules["openai"].OpenAI):
         # Generate a unique ID for this call
         call_id = f"{int(time.time())}"
         start_time = time.time()
-        logger.openai_trace(f"Generated unique call ID: {call_id}")
+        logger.openai_trace(f"\n\n=========\nGenerated unique call ID: {call_id}\n=========\n")
         # Log the function call
         logger.openai_trace(f"[{call_id}] Calling OpenAI post method")
         logger.openai_trace(
