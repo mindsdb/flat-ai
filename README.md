@@ -66,25 +66,9 @@ match llm.classify(options, email=email):
 
 For most workflows, we will need our LLM to fill out objects like a trained monkey with a PhD in data entry. Just define the shape and watch the magic! 🐒📝
 
-*For example*, let's say we want to extract a summary of the email and a label for it:
+*For example*, let's deal with a list of action items at once as opposed to one at a time.
 
 ```python
-class EmailSummary(BaseModel):
-    summary: str
-    label: str
-
-
-email_summary = llm.generate_object(EmailSummary, email=email)
-```
-
-### Parallelization
-
-<img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
-
-There will be times, where you will want work to happen simultaneously. For example deal with a list of action items at once as opposed to one at a time.
-
-```python
-from concurrent.futures import ThreadPoolExecutor
 
 class ActionItem(BaseModel):
     action: str
@@ -94,20 +78,7 @@ class ActionItem(BaseModel):
 # we want to generate a list of action items
 object_schema = List[ActionItem]
 
-# Generate action items
-action_items = llm.generate_object(object_schema, email=email)
-
-# Function to handle the "do your thing" logic
-def process_action_item(action_item: ActionItem):
-    -- do your thing
-
-# Use ThreadPoolExecutor to parallelize the work
-results = list(ThreadPoolExecutor().map(process_action_item, action_items))
-```
-
-Of course, you don't need to parallelize if you don't want to - you can use simple **for-each loops** instead.
-
-```python
+# deal with each action item
 for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
     -- do your thing
 ```
@@ -136,38 +107,30 @@ if llm.true_or_false('is this an email requesting for a meeting?'):
     ret = llm.call_function(send_calendar_invite)
 ``` 
 
-### Function picking
+### Parallel work and Function calling
 
-Sometimes you want to pick a function from a list of functions. You can do that by specifying the list of functions and then having the LLM pick one.
 
-*For example*, let's say we want to pick a function from a list of functions:
+<img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
+
+
+Sometimes you want to pick functions from a list of functions. And then call them all in parallel.
+
+*For example*, let's say you want to send emails and calendar invites from a list of action items discussed in an email:
 
 ```python
-def send_calendar_invites(
-    subject = str, 
-    time = str, 
-    location = str, 
-    attendees = List[str]):
+def send_calendar_invites(subject = str, time = str, location = str, attendees = List[str]):
     -- send a calendar invite to the meeting
 
-def send_email(
-    name = str,
-    email_address_list = List[str],
-    subject = str,
-    body = str):
+def send_email(name = str, email_address_list = List[str], subject = str, body = str):
     -- send an email
 
 instructions = """
-You are a helpful assistant that can send emails and schedule meetings.
-You can pick a function from the list of functions and then call it with the arguments you want.
-if:
-    the email thread does not contain details about when people are available, please send an email to the list of email addresses, requesting for available times.
-else
-    send a calendar invites to the meeting
+extract list of action items and call the funcitons required
 """
 
-functions_to_call = llm.pick_a_function([send_calendar_invite, send_email], instructions = instructions,  email=email, today = date.today())
-functions_to_call() # this will call the functions with the arguments
+functions_to_call = llm.pick_a_function([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
+# pick a function returns a parallel callable object, where each function is called in a separate thread.
+results = functions_to_call()
 ```
 
 
@@ -219,7 +182,7 @@ tail -f llm.log
 ```
 
 
-## Painless Context
+## Painless Global Context
 
 Ever tried talking to an LLM? You gotta give it a "prompt" - fancy word for "given some context {context}, please do something with this text, oh mighty AI overlord." But here's the optimization: constantly writing the code to pass the context to an LLM is like telling your grandparents how to use a smartphone... every. single. day. 
 
@@ -229,28 +192,22 @@ So we're making it brain-dead simple with these methods to pass the context when
 - `clear_context`: For when you want the LLM to forget everything, like the last 10 minutes of your life ;)
 - `delete_from_context`: Surgical removal of specific memories
 
-So lets say for example we want our LLM to start working magic with an email. You add the email to the context:
+So lets say for example you want to set context that you want to avoid having to pass every single time
 
 ```python
 from pydantic import BaseModel
 
-# for the following examples, we will be using the following object
-class Email(BaseModel):
-    to_email: str
-    from_email: str
-    body: str
-    subject: str
-
-email = Email(
-    to_email='john@doe.com',
-    from_email='jane@doe.com',
-    body='Hello, would love to schedule a time to talk.',
-    subject='Meeting'
-)
-
-# we can set the context of the LLM to the email
-llm.set_context(email=email)
-
+# we can set global context, that will always be passed on every call, unless you want to remove it (which you can at any point in time)
+llm.set_context(current_date=today(), user_name="Bob McPlumber", age="22", ....)
+-- do some stuff
+# oops he is actually 29, lets update that, and also, now it's fav color is pink
+llm.add_context(age=29, fav_color="pink")
+-- do some other stuff
+# well turns out pink was not it, user cant make it's mind, no sweat
+llm.delete_from_context(fav_color)
+-- do something else
+# no more global context is needed
+llm.clear_context()
 ```
 
 
