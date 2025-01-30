@@ -107,7 +107,7 @@ if llm.true_or_false('is this an email requesting for a meeting?'):
     ret = llm.call_function(send_calendar_invite)
 ``` 
 
-### Parallel work and Function calling
+### Parallelization
 
 
 <img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
