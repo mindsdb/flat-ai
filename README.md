@@ -2,7 +2,7 @@
 
 # F.L.A.T. (Frameworkless LLM Agent... Thing)
 
-Welcome to the "Build AI Apps Without Frameworks" masterclass! an AI library so, soo tiny and simple, it makes minimalists look like hoarders. Showcasing that it is possible to leverage the power of LLMs in Agents though absolute simplicity:
+Welcome to the "Build AI Apps Without Frameworks"! an AI library so, soo tiny and simple, it makes minimalists look like hoarders. Showcasing that it is possible to leverage the power of LLMs in Agents though absolute simplicity:
 
 ```shell
 pip install flat-ai
