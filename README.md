@@ -104,28 +104,6 @@ for action_item in llm.generate_object(object_schema, email=email, today = date.
 
 And of course, we want to be able to call functions. But you want the llm to figure out the arguments for you.
 
-*For example*, let's say we want to call a function that sends a calendar invite to a meeting, we want the llm to figure out the arguments for the function given some information:
-
-```python
-def send_calendar_invite(
-    subject = str, 
-    time = str, 
-    location = str, 
-    attendees = List[str]):
-    -- send a calendar invite to the meeting
-
-# we want to send a calendar invite if the email is requesting for a meeting
-ret = llm.call_function(send_calendar_invite, email=email, today = date.today())
-``` 
-
-### Parallelization
-
-
-<img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
-
-
-Sometimes you want to pick functions from a list of functions. And then call them all in parallel.
-
 *For example*, let's say you want to send emails and calendar invites from a list of action items discussed in an email:
 
 ```python
@@ -135,13 +113,31 @@ def send_calendar_invites(subject = str, time = str, location = str, attendees =
 def send_email(name = str, email_address_list = List[str], subject = str, body = str):
     -- send an email
 
-instructions = """
-extract list of action items and call the funcitons required
-"""
+instructions = "extract list of action items and call the funcitons required"
 
-functions_to_call = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
-# picks the functions that should be called and returns a parallel callable object, where each function is called in a separate thread.
-results = functions_to_call()
+functions = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
+
+# no we can call the functions sequentially
+for f in functions:
+    print(f) # log the function and argument
+    f() # call the function
+```
+
+
+
+#### Parallelization
+
+
+<img width="654" alt="image" src="https://github.com/user-attachments/assets/b41c9a34-5835-41d4-a701-e4e1f0c5cea4" />
+
+Sometimes you want to just call them all in parallel.
+
+```
+functions = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
+
+# call the functions in parallel, aggregate results as they arrive
+results = functions()
+
 ```
 
 
