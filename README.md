@@ -120,7 +120,7 @@ functions = llm.get_functions([send_calendar_invite, send_email], instructions =
 # no we can call the functions sequentially
 for f in functions:
     print(f) # log the function and argument
-    f() # call the function
+    f.function(**f.arguments) # call the function, (you can also just do f())
 ```
 
 
