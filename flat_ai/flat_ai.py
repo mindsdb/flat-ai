@@ -31,7 +31,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Type
 import openai
 from pydantic import BaseModel, Field
 import traceback
-from flat_ai.code_helpers import PythonCodeObject
+from flat_ai.code_helpers import PythonCodeObject, INSTRUCTION_MESSAGE
 from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall
 from flat_ai.trace_llm import MyOpenAI
 
@@ -246,15 +246,26 @@ class FlatAI:
                 return schema_class.model_validate(result)
 
         return self._retry_on_error(_execute)
-
+    
     def get_code(self, prompt: str, **kwargs) -> str:
-        """Get a code response from the LLM"""
-        instruction_message = "Based on the provided context and information, generate a complete and accurate Python code that precisely matches the USERs request. Use all relevant details to populate the code with meaningful, appropriate values that best represent the data."
-        
+        """Get a code response from the LLM returned as a PythonCodeObject"""
+        instruction_message = INSTRUCTION_MESSAGE
         plain_llm_response = self.get_string(prompt, instruction_message=instruction_message, **kwargs)
-        code_object = self.generate_object(PythonCodeObject, _code=plain_llm_response)
-
+        code_object = self.generate_object(PythonCodeObject, text_with_code=plain_llm_response)
         return code_object
+    
+    def get_code_as_stream(self, prompt: str, **kwargs) -> str:
+        """Get a code response from the LLM returned as stream of chunks, last chunk is a PythonCodeObject"""
+
+        instruction_message = INSTRUCTION_MESSAGE
+        plain_llm_response = ''    
+        for chunk in self.get_stream(prompt, instruction_message=instruction_message, **kwargs):
+            plain_llm_response += chunk
+            yield chunk
+        code_object = self.generate_object(PythonCodeObject, text_with_code=plain_llm_response)
+        yield code_object
+        
+        
 
     def call_function(self, func: Callable, **kwargs) -> Any:
         """Call a function with AI-determined arguments"""

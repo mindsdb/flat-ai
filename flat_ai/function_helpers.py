@@ -89,13 +89,7 @@ def create_openai_function_description(func: Callable) -> Dict[str, Any]:
 
     return {"type": "function", "function": function_description}
 
-class PythonCodeObject(BaseModel):
-    """
-    Represents a code object with a name and code.
-    """
-    non_executable_comments: str
-    executable_python_code: str
-    dependencies: List[str] = Field(default_factory=list)
+
 
 class FunctionCall(BaseModel):
     """
