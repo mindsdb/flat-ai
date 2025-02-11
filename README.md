@@ -1,6 +1,6 @@
 ![image](https://github.com/user-attachments/assets/5b0bf5bc-70a2-47a7-90ce-20a6e74cd569)
 
-# F.L.A.T. (FrameworkLess Agents... Thing)
+# F.L.A.T. (FlawLess Agents... Thing)
 
 Building AI-Agents should be pretty simple, *"they are typically just LLMs calling functions and logic in a loop."* 
 
