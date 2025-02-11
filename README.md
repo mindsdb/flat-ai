@@ -133,7 +133,7 @@ for function_call in functions:
 
 Sometimes you want to just call them all in parallel.
 
-```
+```python
 functions = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
 
 # call the functions in parallel, aggregate results as they arrive
