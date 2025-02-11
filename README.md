@@ -197,8 +197,6 @@ tail -f llm.log
 
 Sometimes it get's a bit annoying to pass the context every single time, so we're making it brain-dead simple with these methods to pass the context when we need it, and then clear it when we don't:
 
-
-So we're making it brain-dead simple with these methods to pass the context when we need it, and then clear it when we don't:
 - `set_context`: Dump any object into the LLM's memory banks
 - `add_context`: Stack more stuff on top, like a context burrito
 - `clear_context`: For when you want the LLM to forget everything, like the last 10 minutes of your life ;)
