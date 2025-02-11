@@ -206,7 +206,6 @@ So we're making it brain-dead simple with these methods to pass the context when
 So lets say for example you want to set context that you want to avoid having to pass every single time
 
 ```python
-from pydantic import BaseModel
 
 # we can set global context, that will always be passed on every call, unless you want to remove it (which you can at any point in time)
 llm.set_context(current_date=today(), user_name="Bob McPlumber", age="22", ....)
