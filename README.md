@@ -33,7 +33,7 @@ llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini')
 ```
 
 ## Minimalistic AI-Agents with Python constructs
-Thank goodness [Guido van Rossum](https://en.wikipedia.org/wiki/Guido_van_Rossum) had that wild pizza-night in '89 and blessed us with if/else, *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Let's showcase that it is possible to build Agents though absolute simplicity:
+Thank goodness [Guido van Rossum](https://en.wikipedia.org/wiki/Guido_van_Rossum) had that wild pizza-night in '89 and blessed us with if/else, *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons. And here we were thinking we needed quantum computing and a PhD in rocket surgery!
 
 
 ### Gates 
