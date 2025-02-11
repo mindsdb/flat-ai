@@ -102,9 +102,7 @@ def send_calendar_invite(
     -- send a calendar invite to the meeting
 
 # we want to send a calendar invite if the email is requesting for a meeting
-llm.set_context(email=email, today = date.today())
-if llm.true_or_false('is this an email requesting for a meeting?'):
-    ret = llm.call_function(send_calendar_invite)
+ret = llm.call_function(send_calendar_invite, email=email, today = date.today())
 ``` 
 
 ### Parallelization
@@ -128,8 +126,8 @@ instructions = """
 extract list of action items and call the funcitons required
 """
 
-functions_to_call = llm.pick_a_function([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
-# pick a function returns a parallel callable object, where each function is called in a separate thread.
+functions_to_call = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
+# picks the functions that should be called and returns a parallel callable object, where each function is called in a separate thread.
 results = functions_to_call()
 ```
 
@@ -184,7 +182,8 @@ tail -f llm.log
 
 ## Painless Global Context
 
-Ever tried talking to an LLM? You gotta give it a "prompt" - fancy word for "given some context {context}, please do something with this text, oh mighty AI overlord." But here's the optimization: constantly writing the code to pass the context to an LLM is like telling your grandparents how to use a smartphone... every. single. day. 
+Sometimes it get's a bit annoying to pass the context every single time, so we're making it brain-dead simple with these methods to pass the context when we need it, and then clear it when we don't:
+
 
 So we're making it brain-dead simple with these methods to pass the context when we need it, and then clear it when we don't:
 - `set_context`: Dump any object into the LLM's memory banks

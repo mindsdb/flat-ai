@@ -176,6 +176,9 @@ class FlatAI:
 
         return self._retry_on_error(_execute)
 
+    def get_object(self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs) -> Any:
+        """Alias for generate_object"""
+        return self.generate_object(schema_class, **kwargs)
     
     def generate_object(self, schema_class: Type[BaseModel | List[BaseModel]], **kwargs) -> Any:
         """Generate an object matching the provided schema"""
@@ -249,6 +252,12 @@ class FlatAI:
         func = self.pick_a_function([func], **kwargs)
         return func()
 
+    def get_functions(
+        self, functions: List[Callable], _multiple_functions = True, **kwargs
+    ) -> FunctionsToCall:
+        """Alias for pick_a_function"""
+        return self.pick_a_function(functions, _multiple_functions, **kwargs)
+    
     def pick_a_function(
         self, functions: List[Callable], _multiple_functions = True, **kwargs
     ) -> FunctionsToCall:
