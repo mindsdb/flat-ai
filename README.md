@@ -16,7 +16,7 @@ Instead of asking an LLM to "do the whole thing" (which is indeed prone to incon
 - Parallelization [(Multithreading)](#parallelization)
 - Observability [(Well formatted logs)](#observability)
   
-Welcome F.L.A.T, an AI library so, soo tiny and simple, it makes minimalists look like hoarders. 
+Welcome F.L.A.T, a tiny AI library, showcasing that it is possible to build powerful Agents though absolute simplicity:. 
 
 [Tutorial on Google Colab Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
 
