@@ -7,7 +7,7 @@ Building AI-Agents should be pretty simple, *"they are typically just LLMs calli
 
 However, often times watching AI-Agents try to complete tasks is like watching a drunk person trying to solve a Rubik's cube. Entertaining? Yes. Reliable? Not always!
  
-Instead of asking an LLM to "do the whole thing" (which is indeed prone to inconsistency), a FLAT approach puts control and predictability to LLM interactions by treating them more like traditional programming constructs but enhanced with LLM's natural language understanding. like:
+Instead of asking an LLM to "do the whole thing" (which is indeed prone to inconsistency), a FLAT approach puts control and predictability to LLM interactions by treating them more like  programming constructs but enhanced with LLM's natural language understanding. like:
 
 - Binary decisions [(gates)](#gates)
 - Classification [(match/case routing)](#routing)
