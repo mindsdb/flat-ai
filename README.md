@@ -1,9 +1,25 @@
 ![image](https://github.com/user-attachments/assets/5b0bf5bc-70a2-47a7-90ce-20a6e74cd569)
 
-# F.L.A.T. (Frameworkless LLM Agent... Thing)
+# F.L.A.T. (FrameworkLess Agents... Thing)
 
-Welcome to the "Build AI Apps Without Frameworks"! an AI library so, soo tiny and simple, it makes minimalists look like hoarders. Showcasing that it is possible to leverage the power of LLMs in Agents though absolute simplicity:
+Building AI-Agents should be pretty simple, *"they are typically just LLMs calling functions and logic in a loop."* 
 
+However, often times watching AI-Agents try to complete tasks is like watching a drunk person trying to solve a Rubik's cube. Entertaining? Yes. Reliable? Not always!
+ 
+Instead of asking an LLM to "do the whole thing" (which is indeed prone to inconsistency), a FLAT approach puts control and predictability to LLM interactions by treating them more like traditional programming constructs but enhanced with LLM's natural language understanding. like:
+
+- Binary decisions [(gates)](#gates)
+- Classification [(match/case routing)](#routing)
+- Structured data extraction [(using Pydantic models)](#objects)
+- Tool calling [(Well typed function calls)](#function-calling)
+- Parallelization [(Multithreading)](#parallelization)
+- Observability [(Well formatted logs)](#observability)
+  
+Welcome F.L.A.T, an AI library so, soo tiny and simple, it makes minimalists look like hoarders. 
+
+[Tutorial on Google Colab Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
+
+## Setup 
 ```shell
 pip install flat-ai
 ```
@@ -14,13 +30,9 @@ from flat_ai import FlatAI
 # works with ollama, openai, together, anyscale ...
 llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini', base_url='https://api.openai.com/v1')
 ```
-If you want to play straight with a notebook:
 
-[Tutorial Jupyter Notebook](https://colab.research.google.com/drive/1dK5bzsFy1BtwhQgw9cFmRtqrcJyNeSi4?usp=sharing)
-
-## Frameworkless AI-Agents and Workflows
-
- *"Agents are typically just LLMs using tools and logic in a loop."* It's basically a Python script doing the hokey pokey with an API - you put the prompt in, you get the output out, an *if/else* here and there, you do the *while loop* and shake it all about. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Thank goodness Guido van Rossum had that wild weekend in '89 and blessed us with *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons.
+## Minimalistic AI-Agents with Python constructs
+Thank goodness [Guido van Rossum](https://en.wikipedia.org/wiki/Guido_van_Rossum) had that wild pizza-night in '89 and blessed us with if/else, *for loops* and *functions*. Without those brand new Python features, we'd be building our AI agents with stone tablets and carrier pigeons. And here we were thinking we needed quantum computing and a PhD in rocket surgery! Let's showcase that it is possible to build Agents though absolute simplicity:
 
 
 ### Gates 
