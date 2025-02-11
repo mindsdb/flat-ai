@@ -3,6 +3,7 @@ import inspect
 import re
 from concurrent.futures import ThreadPoolExecutor
 from pydantic import BaseModel, Field
+import json
 
 # Helper functions and classes for handling function calls and OpenAI function descriptions
 
@@ -114,6 +115,32 @@ class FunctionCall(BaseModel):
         except TypeError as e:
             raise ValueError(f"Invalid arguments for function {self.function.__name__}: {str(e)}")
 
+    def __call__(self):
+        """
+        Executes the function with stored arguments and returns the result.
+        Validates arguments before execution.
+
+        Returns:
+            The result of the function call, or raises an exception if validation fails.
+        """
+        # Validate arguments before executing
+        self.validate_arguments()
+        
+        # Execute function with stored arguments
+        try:
+            self.result = self.function(**self.arguments)
+            return self.result
+        except Exception as e:
+            self.result = e  # Store exception as result if function fails
+            raise
+
+    def __str__(self):
+        """
+        Returns a string representation of the FunctionCall object.
+        """
+        args_str = str(self.arguments) if not isinstance(self.arguments, dict) else json.dumps(self.arguments)
+        return f"FunctionCall(object.function={self.function.__name__}, object.arguments={args_str})"
+
 class FunctionsToCall():
     """
     Manages a collection of function calls and executes them in parallel.
@@ -121,6 +148,12 @@ class FunctionsToCall():
     def __init__(self):
         self.functions: list[FunctionCall] = []  # List to store function calls
 
+    def __iter__(self):
+        """
+        Makes FunctionsToCall iterable, yielding each FunctionCall object.
+        """
+        return iter(self.functions)
+    
     def __call__(self):
         """
         Executes all stored functions in parallel using a ThreadPoolExecutor.

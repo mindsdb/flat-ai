@@ -117,10 +117,11 @@ instructions = "extract list of action items and call the funcitons required"
 
 functions = llm.get_functions([send_calendar_invite, send_email], instructions = instructions, email=email, current_date = date.today())
 
-# no we can call the functions sequentially
-for f in functions:
-    print(f) # log the function and argument
-    f.function(**f.arguments) # call the function, (you can also just do f())
+# we can call the functions sequentially
+for function_call in functions:
+    logging.info(f"this is what we are calling: {function_call}") # log the function and arguments
+    ret=function_call() # call the function
+    logging.info(f"this is the return value: {ret}") # log the return value
 ```
 
 

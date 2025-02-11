@@ -1,6 +1,6 @@
 __title__ = 'flat-ai'
 __package_name__ = 'flat_ai'
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 __description__ = 'F.L.A.T. (Frameworkless LLM Agent Thing) for building AI Agents'
 __email__ = 'hello@mindsdb.com'
 __author__ = 'Yours truly Jorge Torres and an LLM'
