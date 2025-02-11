@@ -1,4 +1,5 @@
-![image](https://github.com/user-attachments/assets/5b0bf5bc-70a2-47a7-90ce-20a6e74cd569)
+
+![image](https://github.com/user-attachments/assets/6521d673-3b62-4b60-a4c9-26b34e6e1c31)
 
 # F.L.A.T. (FlawLess Agents... Thing)
 
