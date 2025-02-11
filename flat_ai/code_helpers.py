@@ -15,5 +15,21 @@ class PythonCodeObject(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+    
+
+class StreamChunk(BaseModel):
+    """
+    Represents a chunk but can also get the full string so far.
+    """
+    chunk: str
+    role: str
+    string_so_far: str
+
+    def __str__(self):
+        return self.chunk
+    
+    def __repr__(self):
+        return self.__str__()
+
 
     

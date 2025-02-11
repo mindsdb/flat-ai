@@ -32,7 +32,7 @@ import openai
 from pydantic import BaseModel, Field
 import traceback
 from flat_ai.code_helpers import PythonCodeObject, INSTRUCTION_MESSAGE
-from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall
+from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall, StreamChunk
 from flat_ai.trace_llm import MyOpenAI
 
 
@@ -384,9 +384,13 @@ class FlatAI:
                 stream=True,
                 **self.config  # Include any additional configuration parameters
             )
+            string_so_far = ''
             for chunk in response:
                 if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
+                    chunk_content = chunk.choices[0].delta.content
+                    string_so_far += chunk_content
+                    new_chunk = StreamChunk(chunk=chunk_content, role='assistant', string_so_far=string_so_far)
+                    yield new_chunk
 
         return self._retry_on_error(_execute)
 
