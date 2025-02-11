@@ -23,7 +23,7 @@ class StreamChunk(BaseModel):
     """
     chunk: str
     role: str
-    string_so_far: str
+    string: str
 
     def __str__(self):
         return self.chunk

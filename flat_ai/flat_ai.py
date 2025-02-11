@@ -31,8 +31,8 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Type
 import openai
 from pydantic import BaseModel, Field
 import traceback
-from flat_ai.code_helpers import PythonCodeObject, INSTRUCTION_MESSAGE
-from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall, StreamChunk
+from flat_ai.code_helpers import PythonCodeObject, INSTRUCTION_MESSAGE, StreamChunk
+from flat_ai.function_helpers import create_openai_function_description, FunctionCall, FunctionsToCall
 from flat_ai.trace_llm import MyOpenAI
 
 
@@ -371,7 +371,7 @@ class FlatAI:
 
         return self._retry_on_error(_execute)
 
-    def get_stream(self, prompt: str, **kwargs) -> Iterable[str]:
+    def get_stream(self, prompt: str, **kwargs) -> Iterable[StreamChunk]:
         """Get a streaming response from the LLM"""
 
         def _execute():
@@ -389,7 +389,11 @@ class FlatAI:
                 if chunk.choices[0].delta.content is not None:
                     chunk_content = chunk.choices[0].delta.content
                     string_so_far += chunk_content
-                    new_chunk = StreamChunk(chunk=chunk_content, role='assistant', string_so_far=string_so_far)
+                    new_chunk = StreamChunk(
+                        chunk=chunk_content, 
+                        role=chunk.choices[0].delta.role or "assistant", # Provide default role
+                        string=string_so_far
+                    )
                     yield new_chunk
 
         return self._retry_on_error(_execute)
