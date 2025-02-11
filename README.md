@@ -27,8 +27,8 @@ And you're ready to go!
 
 ```python
 from flat_ai import FlatAI
-# works with ollama, openai, together, anyscale ...
-llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini', base_url='https://api.openai.com/v1')
+# works with ollama, openai, together, anyscale ... (just pass base_url=api_url)
+llm = FlatAI(api_key='YOUR KEY',  model='gpt-4o-mini')
 ```
 
 ## Minimalistic AI-Agents with Python constructs
