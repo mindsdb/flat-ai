@@ -30,6 +30,30 @@ class StreamChunk(BaseModel):
     
     def __repr__(self):
         return self.__str__()
+    
+    def __add__(self, other):
+        return self.string + str(other)
+    
+    def __radd__(self, other):
+        return str(other) + self.string
+    
+    def __iadd__(self, other):
+        self.string += str(other)
+        return self
+    
+    def __append__(self, other):
+        self.string += str(other)  
+        return self
+    
+    def __concat__(self, other):
+        return self.string + str(other)
+    
+    def __rconcat__(self, other):
+        return str(other) + self.string
+    
+
+    
+    
 
 
     

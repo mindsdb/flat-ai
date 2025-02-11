@@ -57,7 +57,10 @@ class FlatAI:
 
         self.model = model
         self.retries = retries
+        self._context_dict = OrderedDict()
+        self._context_list = []
         self._context = OrderedDict()
+        
         self.base_url = base_url
         self.config = kwargs  # Store additional configuration parameters
 
@@ -76,7 +79,8 @@ class FlatAI:
         )
         
         # Copy the existing context
-        new_instance._context = self._context.copy()
+        new_instance._context_dict = self._context_dict.copy()
+        new_instance._context_list = self._context_list.copy()
         
         # Override configuration with provided kwargs
         if 'model' in kwargs:
@@ -103,28 +107,39 @@ class FlatAI:
                     f"Operation failed after {self.retries} attempts. Last error: {str(last_exception)}\nTraceback:\n{last_traceback}"
                 )
 
-    def set_context(self, **kwargs):
+    def set_context(self, *args, **kwargs):
         """Set the context for future LLM interactions"""
-        self._context = OrderedDict(kwargs)
+        self._context_dict = OrderedDict()
+        if args:
+            self._context_list = list(args)
+        else:
+            self._context_dict = OrderedDict(kwargs)
+            self._context_list = []
 
-    def add_context(self, **kwargs):
+    def add_context(self, *args, **kwargs):
         """Add additional context while preserving existing context"""
-        self._context.update(kwargs)
+        if args:
+            self._context_list.extend(args)
+        else:
+            self._context_dict.update(OrderedDict(kwargs))
 
     def clear_context(self):
         """Clear all context"""
-        self._context = {}
+        self._context_dict = OrderedDict()
+        self._context_list = []
 
     def delete_from_context(self, *keys):
         """Remove specific keys from context"""
         for key in keys:
-            self._context.pop(key, None)
+            self._context_dict.pop(key, None)
 
     def _build_messages(self, *message_parts, **kwargs) -> List[Dict[str, str]]:
         """Build message list with context as system message if present"""
         messages = []
 
         context_dict = OrderedDict()
+        self._context = self._context_dict
+        self._context["_context_extra_data"] = self._context_list
         # Add context items first in order
         if self._context:
             for key, value in self._context.items():
