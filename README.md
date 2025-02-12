@@ -92,7 +92,7 @@ class ActionItem(BaseModel):
 object_schema = List[ActionItem]
 
 # deal with each action item
-for action_item in llm.generate_object(object_schema, email=email, today = date.today()):
+for action_item in llm.get_object(object_schema, email=email, today = date.today()):
     -- do your thing
 ```
 
